@@ -47,3 +47,44 @@ for i_sim in range(n_sim):
     # plt.ylabel('price', fontsize=16)
     # plt.grid(True)
     # plt.show()
+
+    ##########################################
+    #       Computational loop
+    #########################################
+
+    # Limit horizon
+    limit_horizon = True
+
+    # Wealth
+    pnl = numpy.empty((N+2))
+    pnl[0] = 0
+
+    # Cash
+    x = numpy.empty((N+2))
+    x[0] = 0
+
+    # Inventory
+    q = numpy.empty((N+2))
+    q[0] = 0
+    q_max = 10
+
+    # Risk factor (->0: high risk, ->1: low risk)
+    gamma = 0.1
+
+    # Market model
+    k = 1.5
+
+    # Reserve price
+    r = numpy.empty((N+1))
+
+    # Optimal quotes
+    ra = numpy.empty((N+1))
+    rb = numpy.empty((N+1))
+
+    # Order consumtion probability factors
+    M = s[0]/200
+    A = 1./dt/math.exp(k*M/2)
+
+    max_q_held = 0
+    min_q_held = 0
+
