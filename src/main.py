@@ -88,3 +88,70 @@ for i_sim in range(n_sim):
     max_q_held = 0
     min_q_held = 0
 
+    for n in range(N+1):
+
+        # Stock trend
+        s[n] = s[n] + 0.1 * n
+
+        # ###############
+        # # Option A: Limit time horizon
+        if limit_horizon:
+
+            # Reserve price
+            r[n] = s[n] - q[n] * gamma * sigma**2*(T-dt*n)
+
+            # Reserve spread
+            r_spread = 2 / gamma * math.log(1+gamma/k)    
+
+            # optimal quotes
+            ra[n] = r[n] + r_spread/2
+            rb[n] = r[n] - r_spread/2
+
+        ###############
+        # Option B: Unlimit time horizon
+        else:
+
+            # Upper bound of inventory position
+            w = 0.5 * gamma**2 * sigma**2 * (q_max+1)**2
+
+            # Optimal quotes
+            coef = gamma**2*sigma**2/(2*w-gamma**2*q[n]**2*sigma**2)
+
+            ra[n] = s[n] + math.log(1+(1-2*q[n])*coef)/gamma
+            rb[n] = s[n] + math.log(1+(-1-2*q[n])*coef)/gamma
+
+            # Reserve price
+            r[n] = (ra[n] + rb[n])/2
+
+        # Reserve deltas
+        delta_a = ra[n] - s[n]
+        delta_b = s[n] - rb[n]
+
+        # Intensities
+        lambda_a = A * math.exp(-k*delta_a)
+        lambda_b = A * math.exp(-k*delta_b)
+
+        # Order consumption (can be both per time step)
+        ya = random.random()
+        yb = random.random()
+
+        dNa = 0
+        dNb = 0
+
+        prob_ask = 1 - math.exp(-lambda_a*dt) # 1-exp(-lt) or just lt?
+        prob_bid = 1 - math.exp(-lambda_b*dt)
+
+        if ya < prob_ask:
+            dNa = 1
+        if yb < prob_bid:
+            dNb = 1
+        
+        q[n+1] = q[n] - dNa + dNb
+        x[n+1] = x[n] + ra[n]*dNa - rb[n]*dNb
+        pnl[n+1] = x[n+1] + q[n+1]*s[n]
+
+        if q[n+1] > max_q_held:
+            max_q_held = q[n+1]
+        if q[n+1] < min_q_held:
+            min_q_held = q[n+1]
+
